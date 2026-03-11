@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless File Processor
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    Environment:
+      Variables:
+        BUCKET_NAME: !Ref FileProcessorBucket
+        QUEUE_URL: !Ref FileProcessorQueue
+        TABLE_NAME: !Ref FileProcessorTable
+
+Resources:
+
+  # S3 Bucket
+  FileProcessorBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      NotificationConfiguration:
+        EventBridgeConfiguration:
+          EventBridgeEnabled: true
+
+  # Dead Letter Queue
+  FileProcessorDLQ:
+    Type: AWS::SQS::Queue
+
+  # SQS Queue
+  FileProcessorQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt FileProcessorDLQ.Arn
+        maxReceiveCount: 3
+
+  # DynamoDB Table
+  FileProcessorTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+        - AttributeName: SK
+          KeyType: RANGE
+
+  # Bootstrapper Lambda - triggered when a file is uploaded to S3
+  BootstrapperFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: bootstrapper/index.handler
+      Timeout: 900
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref FileProcessorBucket
+        - DynamoDBWritePolicy:
+            TableName: !Ref FileProcessorTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt FileProcessorQueue.QueueName
+      Events:
+        S3ObjectCreated:
+          Type: EventBridgeRule
+          Properties:
+            Pattern:
+              source:
+                - aws.s3
+              detail-type:
+                - Object Created
+              detail:
+                bucket:
+                  name:
+                    - !Ref FileProcessorBucket
+                object:
+                  size:
+                    - numeric:
+                      - ">"
+                      - 0
+
+Outputs:
+  BucketName:
+    Value: !Ref FileProcessorBucket
+  QueueUrl:
+    Value: !Ref FileProcessorQueue
+  DLQUrl:
+    Value: !Ref FileProcessorDLQ
+  TableName:
+    Value: !Ref FileProcessorTable
+

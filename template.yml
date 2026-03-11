@@ -6,6 +6,8 @@ Globals:
   Function:
     Runtime: nodejs20.x
     Timeout: 30
+    Layers:
+      - !Ref DependenciesLayer
     Environment:
       Variables:
         BUCKET_NAME: !Ref FileProcessorBucket
@@ -13,6 +15,17 @@ Globals:
         TABLE_NAME: !Ref FileProcessorTable
 
 Resources:
+
+  # Lambda Layer - shared dependencies
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: serverless-file-processor-dependencies
+      ContentUri: layers/dependencies/
+      CompatibleRuntimes:
+        - nodejs20.x
+    Metadata:
+      BuildMethod: nodejs20.x
 
   # S3 Bucket
   FileProcessorBucket:

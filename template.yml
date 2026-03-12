@@ -97,6 +97,22 @@ Resources:
                       - ">"
                       - 0
 
+  # Reducer Lambda - processes rows from SQS queue
+  ReducerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: reducer/index.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref FileProcessorTable
+      Events:
+        SQSTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt FileProcessorQueue.Arn
+            BatchSize: 10
+
 Outputs:
   BucketName:
     Value: !Ref FileProcessorBucket

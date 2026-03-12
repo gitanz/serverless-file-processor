@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { JobRepository } from './JobRepository.js';
 import { Job } from '../models/Job.js';
 
@@ -43,6 +43,21 @@ export class DynamoDBJobRepository extends JobRepository {
         }
 
         return Job.fromItem(response.Item);
+    }
+
+    async incrementTotalCompleted(jobId) {
+        const response = await this.docClient.send(new UpdateCommand({
+            TableName: this.tableName,
+            Key: { PK: 'Jobs', SK: jobId },
+            UpdateExpression: 'ADD TotalCompleted :one SET UpdatedAt = :updatedAt',
+            ExpressionAttributeValues: {
+                ':one': 1,
+                ':updatedAt': new Date().toISOString(),
+            },
+            ReturnValues: 'ALL_NEW',
+        }));
+
+        return response.Attributes.TotalCompleted;
     }
 }
 

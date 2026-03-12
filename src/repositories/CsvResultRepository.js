@@ -22,5 +22,15 @@ export class CsvResultRepository {
     async retrieve(jobId) {
         throw new Error('retrieve() not implemented');
     }
+
+    /**
+     * Atomically adds sales to TotalSales
+     * @param {string} jobId
+     * @param {object} data
+     * @returns {Promise<void>}
+     */
+    async reduce(jobId, data) {
+        throw new Error('reduce() not implemented');
+    }
 }
 

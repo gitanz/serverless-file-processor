@@ -1,7 +1,7 @@
 import { Job } from '../models/Job.js';
 import { CSVRowDTO } from '../dtos/RowDTOs.js';
 
-export class JobInitializationUseCase {
+export class BootstrapJobUseCase {
 
     /**
      * @param {import('../repositories/JobRepository.js').JobRepository} jobRepository
@@ -65,3 +65,4 @@ export class JobInitializationUseCase {
         }
     }
 }
+

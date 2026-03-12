@@ -17,8 +17,8 @@ This would be implemented with AWS Native Serverless Infrastructure
 3. An APIGateway that triggers Lambda to upload file to S3.
 4. An EventBridge rule, that listens to object-created event in S3 bucket
 5. A Lambda function, named Bootstrapper, that is triggered by the EventBridge rule.
-6. A SQS queue, that holds each line from uploaded file as a message payload. The format of message would be {jobid: string, payloadType: csv-row|jsonline|line, payload:
-   {rowNumber: int, data: object}}
+6. A SQS queue, that holds each line from uploaded file as a message payload. The format of message would be {jobid: string, key: string, payloadType: csv-row|jsonline|line, payload:
+   {rowNumber: int, data: object}}. The key is an idempotency key of format "{JobId}#{rowNumber}"
 7. A Lambda function, named Reducer, that processes the messaage payload from the queue.
 8. A deadletter queue, that holds failed rows after 3 retries, with exponential backoff
 

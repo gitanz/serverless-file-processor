@@ -1,10 +1,15 @@
 import { mockClient } from 'aws-sdk-client-mock';
-import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, HeadObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { Readable } from 'stream';
 import { handler } from './index.js';
 
 const s3Mock = mockClient(S3Client);
+const sqsMock = mockClient(SQSClient);
 const dynamoMock = mockClient(DynamoDBDocumentClient);
+
+const csvContent = "country, sales\nireland, 1000\nuk, 2000";
 
 const event = {
     detail: {
@@ -17,11 +22,14 @@ describe('Bootstrapper handler', () => {
 
     beforeEach(() => {
         s3Mock.reset();
+        sqsMock.reset();
         dynamoMock.reset();
     });
 
     it('initializes a job when called with a valid event', async () => {
         s3Mock.on(HeadObjectCommand).resolves({ Metadata: { jobid: 'test-job-id' } });
+        s3Mock.on(GetObjectCommand).resolves({ Body: Readable.from(csvContent) });
+        sqsMock.on(SendMessageCommand).resolves({});
         dynamoMock.on(PutCommand).resolves({});
 
         await handler(event);
@@ -32,6 +40,7 @@ describe('Bootstrapper handler', () => {
             PK: 'Jobs',
             SK: 'test-job-id',
             SourceFilePath: 's3://my-test-bucket/uploads/test-file.csv',
+            TotalRows: 2,
         });
     });
 

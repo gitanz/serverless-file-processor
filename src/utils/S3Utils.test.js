@@ -1,5 +1,6 @@
-import { S3Client, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, HeadObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { mockClient } from "aws-sdk-client-mock";
+import { Readable } from "stream";
 import {S3Utils} from "./S3Utils.js";
 
 const s3Mock = mockClient(S3Client);
@@ -29,4 +30,24 @@ describe("S3Utils Unit Tests", () => {
         expect(result).toEqual({ JobId: "thisisauniquejobid" });
         expect(s3Mock.calls()).toHaveLength(1);
     });
+
+    it("streams object contents from S3", async () => {
+        const s3Utils = new S3Utils();
+        const fileContent = "country, sales\nireland, 1000\nuk, 2000";
+
+        s3Mock.on(GetObjectCommand).resolves({
+            Body: Readable.from(fileContent),
+        });
+
+        const lines = [];
+        for await (const line of s3Utils.streamObject("my-test-bucket", "uploads/test-file.csv")) {
+            lines.push(line);
+        }
+
+        expect(lines).toEqual(["country, sales", "ireland, 1000", "uk, 2000"]);
+        expect(s3Mock.commandCalls(GetObjectCommand)[0].args[0].input).toMatchObject({
+            Bucket: "my-test-bucket",
+            Key: "uploads/test-file.csv",
+        });
+    })
 });

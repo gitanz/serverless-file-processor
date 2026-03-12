@@ -34,6 +34,16 @@ Resources:
       NotificationConfiguration:
         EventBridgeConfiguration:
           EventBridgeEnabled: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - 'http://localhost:4200'
+            AllowedMethods:
+              - PUT
+              - GET
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
 
   # Dead Letter Queue
   FileProcessorDLQ:
@@ -69,6 +79,10 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: prod
+      Cors:
+        AllowOrigin: "'http://localhost:4200'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowMethods: "'GET,PUT,OPTIONS'"
 
   # Uploader Lambda - generates a presigned S3 URL
   UploaderFunction:
@@ -119,6 +133,23 @@ Resources:
                     - numeric:
                       - ">"
                       - 0
+
+  # Get Jobs Lambda - returns all jobs
+  GetJobsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.getJobs
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref FileProcessorTable
+      Events:
+        GetJobs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FileProcessorApi
+            Path: /jobs
+            Method: GET
 
   # Reducer Lambda - processes rows from SQS queue
   ReducerFunction:

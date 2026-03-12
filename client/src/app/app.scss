@@ -1,0 +1,20 @@
+mat-toolbar {
+  background-color: #f0f0f0 !important;
+  color: #333 !important;
+}
+
+.body {
+  min-height: calc(100vh - 128px);
+  background-color: #fafafa;
+  padding: 24px;
+}
+
+mat-divider {
+  margin: 24px 0;
+}
+
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}

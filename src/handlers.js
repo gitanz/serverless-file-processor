@@ -20,11 +20,18 @@ const mapJobUseCase = new MapJobUseCase(jobRepository, csvResultRepository, s3Ut
 const reduceJobUseCase = new ReduceJobUseCase(jobRepository, csvResultRepository, idempotencyRepository);
 const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(s3Utils);
 
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': 'http://localhost:4200',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+    'Access-Control-Allow-Methods': 'GET,PUT,OPTIONS',
+};
+
 export const upload = async () => {
     const { jobId, url } = await generateUploadUrlUseCase.execute();
 
     return {
         statusCode: 200,
+        headers: CORS_HEADERS,
         body: JSON.stringify({ jobId, url }),
     };
 };

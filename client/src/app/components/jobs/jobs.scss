@@ -1,0 +1,26 @@
+table {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+tr.mat-mdc-header-row {
+  background-color: #f0f0f0;
+}
+
+tr.mat-mdc-row {
+  border-bottom: 1px solid #ddd;
+}
+
+tr.mat-mdc-row:nth-child(odd) {
+  background-color: #f7f7f7;
+}
+
+tr.mat-mdc-row:nth-child(even) {
+  background-color: #efefef;
+}
+
+th.mat-mdc-header-cell, td.mat-mdc-cell {
+  border-bottom: none;
+}

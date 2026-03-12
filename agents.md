@@ -23,6 +23,17 @@ This would be implemented with AWS Native Serverless Infrastructure
 8. A deadletter queue, that holds failed rows after 3 retries, with exponential backoff
 
 
+##### Front-end Client
+- Users are going to use the system with an Angular single page app
+- This will be have two sections
+- First section, form with file selector and a upload button
+- File selector is a input type = "file"
+- Upload button is a submit handler. Upon upload action, client will request "Uploader" end-point in APIGateway and receive pre-signed url
+- It will then do a PUT request to the received PUT url.
+- Second section, is a table of jobs
+- The table will have JobID, TotalRows, TotalCompleted, Status, CreatedAt, Updated At columns, along with a Get Details button
+- GetDetails will show Results of file-processing.
+
 ##### Users file upload to S3
 - An APIGateway will open a GET Endpoint that triggers a Lambda Handler, "Uploader"
 - Uploader will generate a JobID (UUID)

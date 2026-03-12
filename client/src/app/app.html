@@ -1,0 +1,14 @@
+<mat-toolbar>
+  <span>Serverless File Processor</span>
+</mat-toolbar>
+<mat-progress-bar *ngIf="loadingService.loading$ | async" mode="indeterminate" />
+
+<div class="body">
+  <app-upload />
+  <mat-divider />
+  <app-jobs />
+</div>
+
+<mat-toolbar class="footer">
+  <span>© 2026 Serverless File Processor</span>
+</mat-toolbar>

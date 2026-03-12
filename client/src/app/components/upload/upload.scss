@@ -1,0 +1,15 @@
+.upload-form {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  input[type="file"] {
+    font-size: 1rem;
+  }
+
+  button {
+    height: 48px;
+    font-size: 1rem;
+    padding: 0 24px;
+  }
+}

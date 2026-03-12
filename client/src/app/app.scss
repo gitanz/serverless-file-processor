@@ -13,6 +13,20 @@ mat-divider {
   margin: 24px 0;
 }
 
+.jobs-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.jobs-table {
+  flex: 0 0 70%;
+}
+
+.job-result {
+  flex: 0 0 calc(30% - 24px);
+}
+
 .footer {
   position: fixed;
   bottom: 0;

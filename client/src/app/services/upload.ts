@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface UploadUrlResponse {
@@ -12,6 +12,9 @@ export interface UploadUrlResponse {
   providedIn: 'root',
 })
 export class UploadService {
+  private fileUploadedSubject = new BehaviorSubject<boolean>(false);
+  fileUploaded$ = this.fileUploadedSubject.asObservable();
+
   constructor(private http: HttpClient) {}
 
   getUploadUrl(): Observable<UploadUrlResponse> {
@@ -20,5 +23,9 @@ export class UploadService {
 
   uploadToPresignedUrl(url: string, file: File): Observable<void> {
     return this.http.put<void>(url, file);
+  }
+
+  notifyFileUploaded() {
+    this.fileUploadedSubject.next(true);
   }
 }

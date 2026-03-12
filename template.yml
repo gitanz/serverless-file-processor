@@ -134,6 +134,23 @@ Resources:
                       - ">"
                       - 0
 
+  # Get Job Results Lambda - returns aggregated results for a job
+  GetJobResultsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.getJobResults
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref FileProcessorTable
+      Events:
+        GetJobResults:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FileProcessorApi
+            Path: /jobs/{id}/result
+            Method: GET
+
   # Get Jobs Lambda - returns all jobs
   GetJobsFunction:
     Type: AWS::Serverless::Function

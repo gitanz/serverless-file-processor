@@ -9,6 +9,7 @@ import { MapJobUseCase } from './usecases/MapJobUseCase.js';
 import { ReduceJobUseCase } from './usecases/ReduceJobUseCase.js';
 import { GenerateUploadUrlUseCase } from './usecases/GenerateUploadUrlUseCase.js';
 import { GetJobsUseCase } from './usecases/GetJobsUseCase.js';
+import { GetJobResultsUseCase } from './usecases/GetJobResultsUseCase.js';
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 const jobRepository = new DynamoDBJobRepository(docClient, process.env.TABLE_NAME);
@@ -21,6 +22,7 @@ const mapJobUseCase = new MapJobUseCase(jobRepository, csvResultRepository, s3Ut
 const reduceJobUseCase = new ReduceJobUseCase(jobRepository, csvResultRepository, idempotencyRepository);
 const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(s3Utils);
 const getJobsUseCase = new GetJobsUseCase(jobRepository);
+const getJobResultsUseCase = new GetJobResultsUseCase(csvResultRepository);
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': 'http://localhost:4200',
@@ -45,6 +47,25 @@ export const getJobs = async () => {
         statusCode: 200,
         headers: CORS_HEADERS,
         body: JSON.stringify(jobs),
+    };
+};
+
+export const getJobResults = async (event) => {
+    const jobId = event.pathParameters?.id;
+    const result = await getJobResultsUseCase.execute(jobId);
+
+    if (!result) {
+        return {
+            statusCode: 404,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ message: 'Results not found' }),
+        };
+    }
+
+    return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify(result),
     };
 };
 

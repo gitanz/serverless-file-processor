@@ -42,7 +42,10 @@ export class Upload {
       }),
       take(1)
     ).subscribe({
-      next: () => console.log('File uploaded successfully'),
+      next: () => {
+        console.log('File uploaded successfully');
+        this.uploadService.notifyFileUploaded();
+      },
       error: (err) => console.error('Upload failed:', err),
     });
   }

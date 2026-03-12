@@ -35,12 +35,18 @@ describe('Bootstrapper handler', () => {
         await handler(event);
 
         expect(s3Mock.commandCalls(HeadObjectCommand)).toHaveLength(1);
-        expect(dynamoMock.commandCalls(PutCommand)).toHaveLength(1);
+        expect(dynamoMock.commandCalls(PutCommand)).toHaveLength(2);
         expect(dynamoMock.commandCalls(PutCommand)[0].args[0].input.Item).toMatchObject({
             PK: 'Jobs',
             SK: 'test-job-id',
             SourceFilePath: 's3://my-test-bucket/uploads/test-file.csv',
             TotalRows: 2,
+        });
+        expect(dynamoMock.commandCalls(PutCommand)[1].args[0].input.Item).toMatchObject({
+            PK: 'Results',
+            SK: 'test-job-id',
+            TotalSales: 0,
+            AverageSales: 0,
         });
     });
 

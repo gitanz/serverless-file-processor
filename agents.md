@@ -33,7 +33,7 @@ This would be implemented with AWS Native Serverless Infrastructure
 - The Event Rule will trigger a "Bootstrapper" Lambda function that picks up the job.  
 - Bootstrapper will stream contents of file and put each row in a SQS queue. Let it be delayed by 30 seconds.
 - Bootstrapper will update the job reference in DynamoDB with TotalRows as count of total rows to be processed
-- Bootstrapper will initialize a record in the DynamoDB table, different partition, PK = "Results", and SK = JobID
+- Bootstrapper will initialize a record in the DynamoDB table, different partition, PK = "Results", SK = JobID, TotalSales = 0, AverageSales = 0
 - Bootstrapper will update Job status to 'IN_PROGRESS'
 
 ##### Process rows in SQS: Reducer Lambda

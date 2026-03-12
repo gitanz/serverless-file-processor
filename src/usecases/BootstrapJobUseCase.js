@@ -1,14 +1,12 @@
 import { Job } from '../models/Job.js';
+import { CsvResult } from '../models/CsvResult.js';
 import { CSVRowDTO } from '../dtos/RowDTOs.js';
 
 export class BootstrapJobUseCase {
 
-    /**
-     * @param {import('../repositories/JobRepository.js').JobRepository} jobRepository
-     * @param {import('../utils/S3Utils.js').S3Utils} s3Utils
-     */
-    constructor(jobRepository, s3Utils, sqsUtils) {
+    constructor(jobRepository, csvResultRepository, s3Utils, sqsUtils) {
         this.jobRepository = jobRepository;
+        this.csvResultRepository = csvResultRepository;
         this.s3Utils = s3Utils;
         this.sqsUtils = sqsUtils;
     }
@@ -44,7 +42,12 @@ export class BootstrapJobUseCase {
         }
 
         job.setTotalRows(rowNumber);
-        await this.jobRepository.save(job);
+        const csvResult = new CsvResult({ jobId: job.id });
+
+        await Promise.all([
+            this.jobRepository.save(job),
+            this.csvResultRepository.save(csvResult),
+        ]);
 
         return job;
     }

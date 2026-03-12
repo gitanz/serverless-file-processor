@@ -24,8 +24,11 @@ This would be implemented with AWS Native Serverless Infrastructure
 
 
 ##### Users file upload to S3
-- A JobID (UUID) will be generated
-- Upon users file upload, the file will be uploaded to S3 bucket with JobID metadata
+- An APIGateway will open a GET Endpoint that triggers a Lambda Handler, "Uploader"
+- Uploader will generate a JobID (UUID)
+- Uploader will create a Presigned S3 URL, validity of 10 minutes, attached userdefined Metadata of jobid 
+- API will return JobID and pre-signed S3 URL, {jobid: JobID, url: PresignedS3URL}
+- Client will upload to URL.
 
 ##### Handle File upload event to S3: Mapper Lambda
 - A job reference will be created in DynamoDB with PK = "Jobs", SK = JobID (from file metadata), SourceFilePath = (s3 reference) and JobStatus = PENDING

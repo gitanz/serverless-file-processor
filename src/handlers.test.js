@@ -3,7 +3,7 @@ import { S3Client, HeadObjectCommand, GetObjectCommand } from '@aws-sdk/client-s
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { Readable } from 'stream';
-import { handler } from './index.js';
+import { map as handler } from './handlers.js';
 
 const s3Mock = mockClient(S3Client);
 const sqsMock = mockClient(SQSClient);
@@ -58,3 +58,4 @@ describe('Bootstrapper handler', () => {
         expect(dynamoMock.commandCalls(PutCommand)).toHaveLength(0);
     });
 });
+

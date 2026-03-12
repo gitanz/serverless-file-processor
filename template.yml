@@ -64,12 +64,35 @@ Resources:
         - AttributeName: SK
           KeyType: RANGE
 
+  # API Gateway
+  FileProcessorApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+
+  # Uploader Lambda - generates a presigned S3 URL
+  UploaderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.upload
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref FileProcessorBucket
+      Events:
+        GetUploadUrl:
+          Type: Api
+          Properties:
+            RestApiId: !Ref FileProcessorApi
+            Path: /upload
+            Method: GET
+
   # Mapper Lambda - triggered when a file is uploaded to S3
   MapperFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Handler: mapper/index.handler
+      Handler: handlers.map
       Timeout: 900
       Policies:
         - S3ReadPolicy:
@@ -102,7 +125,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Handler: reducer/index.handler
+      Handler: handlers.reduce
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref FileProcessorTable
@@ -114,6 +137,8 @@ Resources:
             BatchSize: 10
 
 Outputs:
+  ApiUrl:
+    Value: !Sub 'https://${FileProcessorApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
   BucketName:
     Value: !Ref FileProcessorBucket
   QueueUrl:

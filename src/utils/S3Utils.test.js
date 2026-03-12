@@ -1,4 +1,4 @@
-import { S3Client, HeadObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, HeadObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { mockClient } from "aws-sdk-client-mock";
 import { Readable } from "stream";
 import {S3Utils} from "./S3Utils.js";
@@ -50,4 +50,15 @@ describe("S3Utils Unit Tests", () => {
             Key: "uploads/test-file.csv",
         });
     })
+
+    it("returns a presigned URL for job upload", async () => {
+        process.env.BUCKET_NAME = 'my-test-bucket';
+
+        const s3Utils = new S3Utils();
+        const url = await s3Utils.getJobUploadSignedUrl('test-job-id');
+
+        expect(url).toContain('my-test-bucket');
+        expect(url).toContain('test-job-id');
+        expect(url).toContain('X-Amz-Expires=600');
+    });
 });

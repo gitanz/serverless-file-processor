@@ -1,4 +1,4 @@
-import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { JobRepository } from './JobRepository.js';
 import { Job } from '../models/Job.js';
 
@@ -58,6 +58,16 @@ export class DynamoDBJobRepository extends JobRepository {
         }));
 
         return response.Attributes.TotalCompleted;
+    }
+
+    async list() {
+        const response = await this.docClient.send(new QueryCommand({
+            TableName: this.tableName,
+            KeyConditionExpression: 'PK = :pk',
+            ExpressionAttributeValues: { ':pk': 'Jobs' },
+        }));
+
+        return response.Items.map(item => Job.fromItem(item));
     }
 }
 

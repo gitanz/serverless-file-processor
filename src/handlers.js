@@ -8,6 +8,7 @@ import { DynamoDBIdempotencyRepository } from './repositories/DynamoDBIdempotenc
 import { MapJobUseCase } from './usecases/MapJobUseCase.js';
 import { ReduceJobUseCase } from './usecases/ReduceJobUseCase.js';
 import { GenerateUploadUrlUseCase } from './usecases/GenerateUploadUrlUseCase.js';
+import { GetJobsUseCase } from './usecases/GetJobsUseCase.js';
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 const jobRepository = new DynamoDBJobRepository(docClient, process.env.TABLE_NAME);
@@ -19,6 +20,7 @@ const sqsUtils = new SQSUtils();
 const mapJobUseCase = new MapJobUseCase(jobRepository, csvResultRepository, s3Utils, sqsUtils);
 const reduceJobUseCase = new ReduceJobUseCase(jobRepository, csvResultRepository, idempotencyRepository);
 const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(s3Utils);
+const getJobsUseCase = new GetJobsUseCase(jobRepository);
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': 'http://localhost:4200',
@@ -33,6 +35,16 @@ export const upload = async () => {
         statusCode: 200,
         headers: CORS_HEADERS,
         body: JSON.stringify({ jobId, url }),
+    };
+};
+
+export const getJobs = async () => {
+    const jobs = await getJobsUseCase.execute();
+
+    return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify(jobs),
     };
 };
 

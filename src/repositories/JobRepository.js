@@ -24,6 +24,10 @@ export class JobRepository {
         throw new Error('retrieve() not implemented');
     }
 
+    async list() {
+        throw new Error('list() not implemented');
+    }
+
     /**
      * Atomically increments TotalCompleted and returns the updated value
      * @param {string} jobId

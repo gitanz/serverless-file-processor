@@ -2,7 +2,7 @@ import { Job } from '../models/Job.js';
 import { CsvResult } from '../models/CsvResult.js';
 import { CSVRowDTO } from '../dtos/RowDTOs.js';
 
-export class BootstrapJobUseCase {
+export class MapJobUseCase {
 
     constructor(jobRepository, csvResultRepository, s3Utils, sqsUtils) {
         this.jobRepository = jobRepository;
@@ -68,4 +68,5 @@ export class BootstrapJobUseCase {
         }
     }
 }
+
 

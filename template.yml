@@ -64,12 +64,12 @@ Resources:
         - AttributeName: SK
           KeyType: RANGE
 
-  # Bootstrapper Lambda - triggered when a file is uploaded to S3
-  BootstrapperFunction:
+  # Mapper Lambda - triggered when a file is uploaded to S3
+  MapperFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Handler: bootstrapper/index.handler
+      Handler: mapper/index.handler
       Timeout: 900
       Policies:
         - S3ReadPolicy:

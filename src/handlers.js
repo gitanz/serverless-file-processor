@@ -10,6 +10,7 @@ import { ReduceJobUseCase } from './usecases/ReduceJobUseCase.js';
 import { GenerateUploadUrlUseCase } from './usecases/GenerateUploadUrlUseCase.js';
 import { GetJobsUseCase } from './usecases/GetJobsUseCase.js';
 import { GetJobResultsUseCase } from './usecases/GetJobResultsUseCase.js';
+import { FileProcessingStrategy } from './factories/FileProcessingStrategy.js';
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 const jobRepository = new DynamoDBJobRepository(docClient, process.env.TABLE_NAME);
@@ -17,8 +18,9 @@ const csvResultRepository = new DynamoDBCsvResultRepository(docClient, process.e
 const idempotencyRepository = new DynamoDBIdempotencyRepository(docClient, process.env.TABLE_NAME);
 const s3Utils = new S3Utils();
 const sqsUtils = new SQSUtils();
+const fileProcessingStrategy = new FileProcessingStrategy();
 
-const mapJobUseCase = new MapJobUseCase(jobRepository, csvResultRepository, s3Utils, sqsUtils);
+const mapJobUseCase = new MapJobUseCase(jobRepository, fileProcessingStrategy, s3Utils, sqsUtils);
 const reduceJobUseCase = new ReduceJobUseCase(jobRepository, csvResultRepository, idempotencyRepository);
 const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(s3Utils);
 const getJobsUseCase = new GetJobsUseCase(jobRepository);

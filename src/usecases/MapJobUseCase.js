@@ -1,14 +1,14 @@
 import {Job, JobStatus} from '../models/Job.js';
 import { CsvResult } from '../models/CsvResult.js';
-import { CSVRowDTO } from '../dtos/RowDTOs.js';
+import { CSVRowDTO } from '../dtos/CsvRowDTO.js';
 
 const SUPPORTED_CONTENT_TYPES = ['text/csv', 'application/jsonl', 'text/plain'];
 const MAX_CONTENT_LENGTH_MB = 10;
 export class MapJobUseCase {
 
-    constructor(jobRepository, csvResultRepository, s3Utils, sqsUtils) {
+    constructor(jobRepository, fileProcessingStrategy, s3Utils, sqsUtils) {
         this.jobRepository = jobRepository;
-        this.csvResultRepository = csvResultRepository;
+        this.fileProcessingStrategy = fileProcessingStrategy;
         this.s3Utils = s3Utils;
         this.sqsUtils = sqsUtils;
     }
@@ -48,44 +48,30 @@ export class MapJobUseCase {
             throw new Error(`Exceeds max file size`);
         }
 
+        const fileTypeFactory = this.fileProcessingStrategy.getFactory(contentType);
+
         let rowNumber = 0;
-        for await (const data of this.#streamRows(objectDetails)) {
+        for await (const data of fileTypeFactory.getStreamer(objectDetails).streamRows(objectDetails)) {
             rowNumber++;
             const message = {
                 jobId: job.id,
                 key: `${job.id}#${rowNumber}`,
-                payloadType: 'csv-row',
-                payload: { rowNumber, data: new CSVRowDTO(data.country, data.sales) },
+                payloadType: contentType,
+                payload: { rowNumber, data: fileTypeFactory.createDto(data) },
             };
 
             await this.sqsUtils.pushMessage(queueUrl, message, 30);
         }
 
         job.setTotalRows(rowNumber);
-        const csvResult = new CsvResult({ jobId: job.id });
+        const result =  fileTypeFactory.createResult(job)
 
         await Promise.all([
             this.jobRepository.save(job),
-            this.csvResultRepository.save(csvResult),
+            fileTypeFactory.getResultRepository().save(result),
         ]);
 
         return job;
-    }
-
-    async *#streamRows(objectDetails) {
-        let headers = null;
-
-        for await (const line of this.s3Utils.streamObject(objectDetails.bucket.name, objectDetails.object.key)) {
-            if (!line.trim()) continue;
-
-            if (!headers) {
-                headers = line.split(',').map(h => h.trim());
-                continue;
-            }
-
-            const values = line.split(',').map(v => v.trim());
-            yield Object.fromEntries(headers.map((h, i) => [h, values[i]]));
-        }
     }
 }
 

@@ -78,7 +78,7 @@ describe('MapJobUseCase', () => {
         const useCase = new MapJobUseCase(mockJobRepository, strategy, new S3Utils(), new SQSUtils());
 
         await expect(useCase.execute(objectDetails))
-            .rejects.toThrow('jobid not found in object metadata');
+            .rejects.toThrow('Job not found');
 
         expect(mockJobRepository.save).not.toHaveBeenCalled();
     });
@@ -91,7 +91,7 @@ describe('MapJobUseCase', () => {
         const useCase = new MapJobUseCase(mockJobRepository, strategy, new S3Utils(), new SQSUtils());
 
         await expect(useCase.execute(objectDetails))
-            .rejects.toThrow('jobid not found in object metadata');
+            .rejects.toThrow('Job not found');
 
         expect(mockJobRepository.save).not.toHaveBeenCalled();
     });

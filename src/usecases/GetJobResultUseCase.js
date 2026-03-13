@@ -1,3 +1,5 @@
+import {JobNotFound} from "../errors/JobNotFound.js";
+
 export class GetJobResultUseCase {
 
     /**
@@ -16,7 +18,7 @@ export class GetJobResultUseCase {
     async execute(jobId) {
         const job = await this.jobsRepository.retrieve(jobId)
         if (!job) {
-            throw new Error(`Job with id ${jobId} not found`);
+            throw new JobNotFound(jobId);
         }
 
         const resultRepository = this.fileProcessingStrategy.getFactory(job.contentType).getResultRepository();

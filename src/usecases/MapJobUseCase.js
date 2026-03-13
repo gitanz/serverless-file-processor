@@ -1,6 +1,8 @@
 import {Job, JobStatus} from '../models/Job.js';
 import { CsvResult } from '../models/CsvResult.js';
 import { CSVRowDTO } from '../dtos/CsvRowDTO.js';
+import {JobNotFound} from "../errors/JobNotFound.js";
+import {FileValidationError} from "../errors/FileValidationError.js";
 
 const SUPPORTED_CONTENT_TYPES = ['text/csv', 'application/jsonl', 'text/plain'];
 const MAX_CONTENT_LENGTH_MB = 10;
@@ -24,7 +26,7 @@ export class MapJobUseCase {
         const jobId = metadata?.jobid;
 
         if (!jobId) {
-            throw new Error('jobid not found in object metadata');
+            throw new JobNotFound(jobId);
         }
 
         const job = new Job({
@@ -38,7 +40,7 @@ export class MapJobUseCase {
             job.setError(`Unsupported content type: ${contentType}`);
             job.setStatus(JobStatus.FAILED);
             this.jobRepository.save(job);
-            throw new Error(`Unsupported content type: ${contentType}.`);
+            throw new FileValidationError(`Unsupported content type: ${contentType}.`);
         }
 
         const contentLengthMB = objectHeaders.ContentLength / 1024 / 1024;
@@ -46,7 +48,7 @@ export class MapJobUseCase {
             job.setError(`Exceeds max file size: ${contentLengthMB.toFixed(2)}MB`);
             job.setStatus(JobStatus.FAILED);
             this.jobRepository.save(job);
-            throw new Error(`Exceeds max file size`);
+            throw new FileValidationError(`Exceeds max file size`);
         }
 
         const fileTypeFactory = this.fileProcessingStrategy.getFactory(contentType);

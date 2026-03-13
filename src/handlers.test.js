@@ -53,8 +53,8 @@ describe('Bootstrapper handler', () => {
     it('propagates error if jobid is missing from metadata', async () => {
         s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv', Metadata: {} });
 
-        await expect(handler(event)).rejects.toThrow('jobid not found in object metadata');
-
+        const result = await handler(event);
+        expect(result.statusCode).toBe(404);
         expect(dynamoMock.commandCalls(PutCommand)).toHaveLength(0);
     });
 });

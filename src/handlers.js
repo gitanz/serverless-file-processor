@@ -10,6 +10,8 @@ import { GenerateUploadUrlUseCase } from './usecases/GenerateUploadUrlUseCase.js
 import { GetJobsUseCase } from './usecases/GetJobsUseCase.js';
 import { GetJobResultUseCase } from './usecases/GetJobResultUseCase.js';
 import { FileProcessingStrategy } from './factories/FileProcessingStrategy.js';
+import { FileValidationError } from './errors/FileValidationError.js';
+import { JobNotFound } from './errors/JobNotFound.js';
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 const jobRepository = new DynamoDBJobRepository(docClient, process.env.TABLE_NAME);
@@ -51,35 +53,81 @@ export const getJobs = async () => {
 };
 
 export const getJobResults = async (event) => {
-    const jobId = event.pathParameters?.id;
-    const result = await getJobResultsUseCase.execute(jobId);
+    try {
+        const jobId = event.pathParameters?.id;
+        const result = await getJobResultsUseCase.execute(jobId);
 
-    if (!result) {
         return {
-            statusCode: 404,
+            statusCode: 200,
             headers: CORS_HEADERS,
-            body: JSON.stringify({ message: 'Results not found' }),
+            body: JSON.stringify(result),
+        };
+
+    } catch (err) {
+        console.error(`CorrelationID#: ${err.message}`);
+
+        if (err instanceof JobNotFound) {
+            return {
+                statusCode: 404,
+                headers: CORS_HEADERS,
+                body: JSON.stringify({ message: err.message }),
+            };
+        }
+
+        return {
+            statusCode: 503,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ message: err.message }),
         };
     }
-
-    return {
-        statusCode: 200,
-        headers: CORS_HEADERS,
-        body: JSON.stringify(result),
-    };
 };
 
 export const map = async (event) => {
-    const job = await mapJobUseCase.execute(event.detail, process.env.QUEUE_URL);
+    try {
+        const job = await mapJobUseCase.execute(event.detail, process.env.QUEUE_URL);
+        console.log(`Job mapped: id=${job.id} status=${job.status}`);
+    } catch (err) {
+        console.error(`CorrelationID#: ${err.message}`);
 
-    console.log(`Job mapped: id=${job.id} status=${job.status}`);
+        if (err instanceof JobNotFound) {
+            return {
+                statusCode: 404,
+                headers: CORS_HEADERS,
+                body: JSON.stringify({ message: err.message }),
+            };
+        }
+
+        if (err instanceof FileValidationError) {
+            return {
+                statusCode: 403,
+                headers: CORS_HEADERS,
+                body: JSON.stringify({ message: err.message }),
+            };
+        }
+
+        return {
+            statusCode: 503,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ message: err.message }),
+        };
+    }
 };
 
 export const reduce = async (event) => {
-    for (const record of event.Records) {
-        const message = JSON.parse(record.body);
-        console.log(`Processing message key=${message.key}`);
-        await reduceJobUseCase.execute(message);
+    try {
+        for (const record of event.Records) {
+            const message = JSON.parse(record.body);
+            console.log(`Processing message key=${message.key}`);
+            await reduceJobUseCase.execute(message);
+        }
+    } catch (err) {
+        console.error(`CorrelationID#: ${err.message}`);
+        return {
+            statusCode: 503,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({ message: err.message }),
+        };
     }
+
 };
 

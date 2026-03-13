@@ -13,6 +13,18 @@ const docClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 const csvResultRepository = new DynamoDBCsvResultRepository(docClient, process.env.TABLE_NAME);
 const csvStreamer = new CsvFileStreamer(s3Utils);
 export class CsvFileFactory extends FileTypeFactory {
+    validate(data) {
+        if (!data.country) {
+            return false
+        }
+
+        if (!data.sales || isNaN(data.sales)) {
+            return false;
+        }
+
+        return true;
+    }
+
     createDto(data) {
         return new CSVRowDTO(data.country, data.sales);
     }

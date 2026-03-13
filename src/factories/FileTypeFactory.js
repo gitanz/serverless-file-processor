@@ -1,4 +1,7 @@
 export class FileTypeFactory {
+    validate(data) {
+        throw new Error("validate(data) method not implemented")
+    }
     createDto() {
         throw new Error("createDto() method not implemented")
     }

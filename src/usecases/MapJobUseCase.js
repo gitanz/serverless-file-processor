@@ -57,8 +57,16 @@ export class MapJobUseCase {
         const fileTypeFactory = this.fileProcessingStrategy.getFactory(contentType);
 
         let rowNumber = 0;
+        let countInvalidRows = 0;
         for await (const data of fileTypeFactory.getStreamer(objectDetails).streamRows(objectDetails)) {
             rowNumber++;
+
+            if (!fileTypeFactory.validate(data)) {
+                countInvalidRows++;
+                console.warn(`CorId#${corId}: Invalid row ${rowNumber} - ${JSON.stringify(data)}`);
+                continue;
+            }
+
             const message = {
                 corId: corId,
                 jobId: job.id,
@@ -71,6 +79,8 @@ export class MapJobUseCase {
         }
 
         job.setTotalRows(rowNumber);
+        job.setTotalInvalid(countInvalidRows);
+
         const result =  fileTypeFactory.createResult(job)
 
         await Promise.all([

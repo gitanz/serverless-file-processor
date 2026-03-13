@@ -14,6 +14,7 @@ export class Job extends BaseModel {
                     status = JobStatus.PENDING,
                     totalRows = 0,
                     totalCompleted = 0,
+                    totalInvalid = 0,
                     error = null,
                     contentType = null,
                     createdAt = new Date().toISOString(),
@@ -29,6 +30,7 @@ export class Job extends BaseModel {
         this.status = status;
         this.totalRows = totalRows;
         this.totalCompleted = totalCompleted;
+        this.totalInvalid = totalInvalid;
         this.error = error;
         this.contentType = contentType;
         this.createdAt = createdAt;
@@ -42,6 +44,11 @@ export class Job extends BaseModel {
 
     setTotalCompleted(totalCompleted) {
         this.totalCompleted = totalCompleted;
+        this.updatedAt = new Date().toISOString();
+    }
+
+    setTotalInvalid(totalInvalid) {
+        this.totalInvalid = totalInvalid;
         this.updatedAt = new Date().toISOString();
     }
 
@@ -68,6 +75,7 @@ export class Job extends BaseModel {
             JobStatus: this.status,
             TotalRows: this.totalRows,
             TotalCompleted: this.totalCompleted,
+            TotalInvalid: this.totalInvalid,
             Error: this.error,
             ContentType: this.contentType,
             CreatedAt: this.createdAt,
@@ -81,6 +89,7 @@ export class Job extends BaseModel {
             sourceFilePath: item.SourceFilePath,
             status: item.JobStatus,
             totalRows: item.TotalRows,
+            totalInvalid: item.TotalInvalid,
             totalCompleted: item.TotalCompleted,
             error: item.Error ?? null,
             contentType: item.ContentType ?? null,

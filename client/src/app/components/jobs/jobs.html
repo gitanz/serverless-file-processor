@@ -33,6 +33,10 @@
     <td mat-cell *matCellDef="let job">{{ job.totalCompleted }}</td>
   </ng-container>
 
+  <ng-container matColumnDef="totalInvalid">
+    <th mat-header-cell *matHeaderCellDef>Invalid</th>
+    <td mat-cell *matCellDef="let job">{{ job.totalInvalid }}</td>
+  </ng-container>
 
   <ng-container matColumnDef="createdAt">
     <th mat-header-cell *matHeaderCellDef>Created At</th>

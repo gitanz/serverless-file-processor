@@ -26,6 +26,7 @@ const makeMockStrategy = () => {
                 yield { country: 'uk', sales: '2000' };
             }),
         }),
+        validate: jest.fn().mockImplementation((data) => true),
         createDto: jest.fn().mockImplementation((data) => data),
         createResult: jest.fn().mockReturnValue({}),
         getResultRepository: jest.fn().mockReturnValue(mockResultRepository),

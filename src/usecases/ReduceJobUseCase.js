@@ -38,7 +38,7 @@ export class ReduceJobUseCase {
             const totalCompleted = await this.jobRepository.incrementTotalCompleted(jobId);
             const job = await this.jobRepository.retrieve(jobId);
 
-            if (totalCompleted === job.totalRows) {
+            if (totalCompleted === job.totalRows - job.totalInvalid) {
                 job.setStatus(JobStatus.COMPLETED);
                 await this.jobRepository.save(job);
             }

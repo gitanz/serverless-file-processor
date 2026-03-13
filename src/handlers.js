@@ -21,7 +21,7 @@ const sqsUtils = new SQSUtils();
 const fileProcessingStrategy = new FileProcessingStrategy();
 
 const mapJobUseCase = new MapJobUseCase(jobRepository, fileProcessingStrategy, s3Utils, sqsUtils);
-const reduceJobUseCase = new ReduceJobUseCase(jobRepository, csvResultRepository, idempotencyRepository);
+const reduceJobUseCase = new ReduceJobUseCase(jobRepository, fileProcessingStrategy, idempotencyRepository);
 const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(s3Utils);
 const getJobsUseCase = new GetJobsUseCase(jobRepository);
 const getJobResultsUseCase = new GetJobResultsUseCase(csvResultRepository);

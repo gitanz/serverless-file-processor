@@ -32,11 +32,14 @@ describe('ReduceJobUseCase', () => {
         mockCsvResultRepository = {
             reduce: jest.fn().mockResolvedValue(),
         };
+        mockFileProcessingStrategy = {
+            getFactory: jest.fn().mockReturnValue(mockCsvResultRepository),
+        };
         mockIdempotencyRepository = {
             save: jest.fn(),
             delete: jest.fn().mockResolvedValue(),
         };
-        useCase = new ReduceJobUseCase(mockJobRepository, mockCsvResultRepository, mockIdempotencyRepository);
+        useCase = new ReduceJobUseCase(mockJobRepository, mockFileProcessingStrategy, mockIdempotencyRepository);
     });
 
     it('skips processing if idempotency key already exists', async () => {

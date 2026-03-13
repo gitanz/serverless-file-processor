@@ -5,12 +5,12 @@ export class ReduceJobUseCase {
 
     /**
      * @param {import('../repositories/JobRepository.js').JobRepository} jobRepository
-     * @param {import('../repositories/CsvResultRepository.js').CsvResultRepository} csvResultRepository
+     * @param fileProcessingStrategy
      * @param {import('../repositories/IdempotencyRepository.js').IdempotencyRepository} idempotencyRepository
      */
-    constructor(jobRepository, csvResultRepository, idempotencyRepository) {
+    constructor(jobRepository, fileProcessingStrategy, idempotencyRepository) {
         this.jobRepository = jobRepository;
-        this.csvResultRepository = csvResultRepository;
+        this.fileProcessingStrategy = fileProcessingStrategy;
         this.idempotencyRepository = idempotencyRepository;
     }
 
@@ -19,8 +19,9 @@ export class ReduceJobUseCase {
      * @returns {Promise<void>}
      */
     async execute(message) {
-        const { key, jobId } = message;
+        const { jobId, key, payloadType:contentType } = message;
 
+        const resultRepository = this.fileProcessingStrategy.getFactory(contentType);
         const saved = await this.idempotencyRepository.save(new Idempotency({ key }));
         if (!saved) {
             console.log(`Duplicate message, skipping key=${key}`);
@@ -29,7 +30,7 @@ export class ReduceJobUseCase {
 
         try {
             const { data } = message.payload;
-            await this.csvResultRepository.reduce(jobId, data);
+            await resultRepository.reduce(jobId, data);
 
             const totalCompleted = await this.jobRepository.incrementTotalCompleted(jobId);
             const job = await this.jobRepository.retrieve(jobId);

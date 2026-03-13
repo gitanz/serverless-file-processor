@@ -27,7 +27,7 @@ describe('Bootstrapper handler', () => {
     });
 
     it('initializes a job when called with a valid event', async () => {
-        s3Mock.on(HeadObjectCommand).resolves({ Metadata: { jobid: 'test-job-id' } });
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv', Metadata: { jobid: 'test-job-id' } });
         s3Mock.on(GetObjectCommand).resolves({ Body: Readable.from(csvContent) });
         sqsMock.on(SendMessageCommand).resolves({});
         dynamoMock.on(PutCommand).resolves({});
@@ -51,7 +51,7 @@ describe('Bootstrapper handler', () => {
     });
 
     it('propagates error if jobid is missing from metadata', async () => {
-        s3Mock.on(HeadObjectCommand).resolves({ Metadata: {} });
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv', Metadata: {} });
 
         await expect(handler(event)).rejects.toThrow('jobid not found in object metadata');
 

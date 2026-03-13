@@ -1,4 +1,4 @@
-import {HeadObjectCommand, GetObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
+import {GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client} from "@aws-sdk/client-s3";
 import {getSignedUrl} from "@aws-sdk/s3-request-presigner";
 import {createInterface} from "readline";
 
@@ -8,14 +8,17 @@ export class S3Utils {
         this.s3Client = new S3Client({ region: process.env.AWS_REGION ?? 'eu-west-1' });
     }
 
-    async getObjectMetadata(objectDetail) {
-        const response = await this.s3Client.send(
+    async getObjectHeaders(objectDetail) {
+        return await this.s3Client.send(
             new HeadObjectCommand({
                 Bucket: objectDetail.bucket.name,
                 Key: objectDetail.object.key,
             })
         );
+    }
 
+    async getObjectMetadata(objectDetail) {
+        const response = await this.getObjectHeaders(objectDetail);
         return response.Metadata;
     }
 

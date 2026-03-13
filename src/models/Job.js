@@ -14,6 +14,7 @@ export class Job extends BaseModel {
                     status = JobStatus.PENDING,
                     totalRows = 0,
                     totalCompleted = 0,
+                    error = null,
                     createdAt = new Date().toISOString(),
                     updatedAt = new Date().toISOString()
                 }) {
@@ -27,6 +28,7 @@ export class Job extends BaseModel {
         this.status = status;
         this.totalRows = totalRows;
         this.totalCompleted = totalCompleted;
+        this.error = error;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -46,7 +48,11 @@ export class Job extends BaseModel {
         this.updatedAt = new Date().toISOString();
     }
 
-    // DynamoDB representation
+    setError(error) {
+        this.error = error;
+        this.updatedAt = new Date().toISOString();
+    }
+
     toItem() {
         return {
             PK: 'Jobs',
@@ -55,12 +61,12 @@ export class Job extends BaseModel {
             JobStatus: this.status,
             TotalRows: this.totalRows,
             TotalCompleted: this.totalCompleted,
+            Error: this.error,
             CreatedAt: this.createdAt,
             UpdatedAt: this.updatedAt,
         };
     }
 
-    // Hydrate from a DynamoDB item
     static fromItem(item) {
         return new Job({
             id: item.SK,
@@ -68,6 +74,7 @@ export class Job extends BaseModel {
             status: item.JobStatus,
             totalRows: item.TotalRows,
             totalCompleted: item.TotalCompleted,
+            error: item.Error ?? null,
             createdAt: item.CreatedAt,
             updatedAt: item.UpdatedAt,
         });

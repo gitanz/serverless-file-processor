@@ -27,7 +27,7 @@ describe('MapJobUseCase', () => {
     });
 
     it('creates and saves a job with the jobId from S3 metadata', async () => {
-        s3Mock.on(HeadObjectCommand).resolves({ Metadata: { jobid: 'test-job-id' } });
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv', Metadata: { jobid: 'test-job-id' } });
         s3Mock.on(GetObjectCommand).resolves({ Body: Readable.from(csvContent) });
         sqsMock.on(SendMessageCommand).resolves({});
 
@@ -52,7 +52,7 @@ describe('MapJobUseCase', () => {
     });
 
     it('throws if jobid is missing from S3 metadata', async () => {
-        s3Mock.on(HeadObjectCommand).resolves({ Metadata: {} });
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv', Metadata: {} });
 
         const mockJobRepository = { save: jest.fn() };
         const mockCsvResultRepository = { save: jest.fn() };
@@ -66,7 +66,7 @@ describe('MapJobUseCase', () => {
     });
 
     it('throws if metadata is not present on the S3 object', async () => {
-        s3Mock.on(HeadObjectCommand).resolves({});
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv' });
 
         const mockJobRepository = { save: jest.fn() };
         const mockCsvResultRepository = { save: jest.fn() };
@@ -76,6 +76,34 @@ describe('MapJobUseCase', () => {
             .rejects.toThrow('jobid not found in object metadata');
 
         expect(mockJobRepository.save).not.toHaveBeenCalled();
+        expect(mockCsvResultRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('throws if content type is not supported', async () => {
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'application/json', Metadata: { jobid: 'test-job-id' } });
+
+        const mockJobRepository = { save: jest.fn() };
+        const mockCsvResultRepository = { save: jest.fn() };
+        const useCase = new MapJobUseCase(mockJobRepository, mockCsvResultRepository, new S3Utils(), new SQSUtils());
+
+        await expect(useCase.execute(objectDetails))
+            .rejects.toThrow('Unsupported content type: application/json');
+
+        expect(mockJobRepository.save).toHaveBeenCalled();
+        expect(mockCsvResultRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('throws if file size is greater than max limit', async () => {
+        s3Mock.on(HeadObjectCommand).resolves({ ContentType: 'text/csv', ContentLength: 11 * 1024 * 1024, Metadata: { jobid: 'test-job-id' } });
+
+        const mockJobRepository = { save: jest.fn() };
+        const mockCsvResultRepository = { save: jest.fn() };
+        const useCase = new MapJobUseCase(mockJobRepository, mockCsvResultRepository, new S3Utils(), new SQSUtils());
+
+        await expect(useCase.execute(objectDetails))
+            .rejects.toThrow('Exceeds max file size');
+
+        expect(mockJobRepository.save).toHaveBeenCalled();
         expect(mockCsvResultRepository.save).not.toHaveBeenCalled();
     });
 });

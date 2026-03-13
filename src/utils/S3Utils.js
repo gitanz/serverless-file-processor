@@ -37,11 +37,14 @@ export class S3Utils {
         }
     }
 
-    async getJobUploadSignedUrl(jobId) {
+    async getJobUploadSignedUrl(jobId, correlationId) {
         const command = new PutObjectCommand({
             Bucket: process.env.BUCKET_NAME,
             Key: `${jobId}`,
-            Metadata: { jobid: jobId },
+            Metadata: {
+                jobid: jobId,
+                corid: correlationId,
+            },
         });
 
         return getSignedUrl(this.s3Client, command, { expiresIn: 600 });

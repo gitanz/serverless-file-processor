@@ -14,4 +14,3 @@ export class GetJobsUseCase {
         return this.jobRepository.list();
     }
 }
-

@@ -23,7 +23,10 @@ export class MapJobUseCase {
     async execute(objectDetails, queueUrl) {
         const objectHeaders = await this.s3Utils.getObjectHeaders(objectDetails);
         const metadata = objectHeaders.Metadata;
+        const corId = metadata?.corid;
         const jobId = metadata?.jobid;
+
+        console.log(`CorId#${corId}: Received S3 event for bucket=${objectDetails.bucket.name}, key=${objectDetails.object.key}`);
 
         if (!jobId) {
             throw new JobNotFound(jobId);
@@ -40,7 +43,7 @@ export class MapJobUseCase {
             job.setError(`Unsupported content type: ${contentType}`);
             job.setStatus(JobStatus.FAILED);
             this.jobRepository.save(job);
-            throw new FileValidationError(`Unsupported content type: ${contentType}.`);
+            throw new FileValidationError(`Unsupported content type: ${contentType}.`, corId);
         }
 
         const contentLengthMB = objectHeaders.ContentLength / 1024 / 1024;
@@ -48,7 +51,7 @@ export class MapJobUseCase {
             job.setError(`Exceeds max file size: ${contentLengthMB.toFixed(2)}MB`);
             job.setStatus(JobStatus.FAILED);
             this.jobRepository.save(job);
-            throw new FileValidationError(`Exceeds max file size`);
+            throw new FileValidationError(`Exceeds max file size`, corId);
         }
 
         const fileTypeFactory = this.fileProcessingStrategy.getFactory(contentType);
@@ -57,6 +60,7 @@ export class MapJobUseCase {
         for await (const data of fileTypeFactory.getStreamer(objectDetails).streamRows(objectDetails)) {
             rowNumber++;
             const message = {
+                corId: corId,
                 jobId: job.id,
                 key: `${job.id}#${rowNumber}`,
                 payloadType: contentType,

@@ -15,7 +15,7 @@ import {MatDivider} from '@angular/material/list';
   styleUrl: './jobs.scss',
 })
 export class Jobs implements OnInit, OnDestroy {
-  displayedColumns = ['id', 'totalRows', 'totalCompleted', 'status', 'createdAt', 'updatedAt'];
+  displayedColumns = ['id', 'status', 'contentType', 'totalRows', 'totalCompleted',  'createdAt', 'updatedAt'];
   jobs: Job[] = [];
   private fileUploadedSub!: Subscription;
 

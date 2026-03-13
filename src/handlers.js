@@ -32,8 +32,9 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Methods': 'GET,PUT,OPTIONS',
 };
 
-export const upload = async () => {
-    const { jobId, url } = await generateUploadUrlUseCase.execute();
+export const upload = async (event) => {
+    const correlationId = event?.headers?.['x-cor-id'];
+    const { jobId, url } = await generateUploadUrlUseCase.execute(correlationId);
 
     return {
         statusCode: 200,

@@ -12,9 +12,11 @@ export class GenerateUploadUrlUseCase {
     /**
      * @returns {Promise<{ jobId: string, url: string }>}
      */
-    async execute() {
+    async execute(correlationId) {
+        console.log(`CorId#${correlationId}: Generating upload URL`);
+
         const jobId = randomUUID();
-        const url = await this.s3Utils.getJobUploadSignedUrl(jobId);
+        const url = await this.s3Utils.getJobUploadSignedUrl(jobId, correlationId);
         return { jobId, url };
     }
 }

@@ -19,13 +19,15 @@ export class ReduceJobUseCase {
      * @returns {Promise<void>}
      */
     async execute(message) {
-        const { jobId, key, payloadType:contentType } = message;
+        const { corId, jobId, key, payloadType:contentType } = message;
+
+        console.log(`CorId#${corId}: Processing message for jobId=${jobId}, key=${key}`);
 
         const resultRepository = this.fileProcessingStrategy.getFactory(contentType).getResultRepository();
         const idempotency = new Idempotency({ key });
         const saved = await this.idempotencyRepository.save(idempotency);
         if (!saved) {
-            console.log(`Duplicate message, skipping key=${key}`);
+            console.log(`CorId#${corId}: Duplicate message, skipping key=${key}`);
             return;
         }
 
@@ -43,7 +45,7 @@ export class ReduceJobUseCase {
 
         } catch (err) {
             await this.idempotencyRepository.delete(idempotency);
-            throw err;
+            throw new Error(`CorId#${corId}: Error processing message for jobId=${jobId}, key=${key}: ${err.message}`);
         }
     }
 }

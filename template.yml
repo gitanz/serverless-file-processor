@@ -81,7 +81,7 @@ Resources:
       StageName: prod
       Cors:
         AllowOrigin: "'http://localhost:4200'"
-        AllowHeaders: "'Content-Type,Authorization'"
+        AllowHeaders: "'Content-Type,Authorization,x-cor-id'"
         AllowMethods: "'GET,PUT,OPTIONS'"
 
   # Uploader Lambda - generates a presigned S3 URL

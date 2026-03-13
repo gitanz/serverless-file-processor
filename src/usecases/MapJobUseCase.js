@@ -30,6 +30,7 @@ export class MapJobUseCase {
         const job = new Job({
             id: jobId,
             sourceFilePath: `s3://${objectDetails.bucket.name}/${objectDetails.object.key}`,
+            contentType: objectHeaders.ContentType,
         });
 
         const contentType = objectHeaders.ContentType;

@@ -16,5 +16,9 @@ export class IdempotencyRepository {
     async save(idempotency) {
         throw new Error('save() not implemented');
     }
+
+    async delete(key) {
+        throw new Error('delete() not implemented');
+    }
 }
 

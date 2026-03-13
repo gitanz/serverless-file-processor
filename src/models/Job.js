@@ -15,6 +15,7 @@ export class Job extends BaseModel {
                     totalRows = 0,
                     totalCompleted = 0,
                     error = null,
+                    contentType = null,
                     createdAt = new Date().toISOString(),
                     updatedAt = new Date().toISOString()
                 }) {
@@ -29,6 +30,7 @@ export class Job extends BaseModel {
         this.totalRows = totalRows;
         this.totalCompleted = totalCompleted;
         this.error = error;
+        this.contentType = contentType;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -53,6 +55,11 @@ export class Job extends BaseModel {
         this.updatedAt = new Date().toISOString();
     }
 
+    setContentType(contentType) {
+        this.contentType = contentType;
+        this.updatedAt = new Date().toISOString();
+    }
+
     toItem() {
         return {
             PK: 'Jobs',
@@ -62,6 +69,7 @@ export class Job extends BaseModel {
             TotalRows: this.totalRows,
             TotalCompleted: this.totalCompleted,
             Error: this.error,
+            ContentType: this.contentType,
             CreatedAt: this.createdAt,
             UpdatedAt: this.updatedAt,
         };
@@ -75,6 +83,7 @@ export class Job extends BaseModel {
             totalRows: item.TotalRows,
             totalCompleted: item.TotalCompleted,
             error: item.Error ?? null,
+            contentType: item.ContentType ?? null,
             createdAt: item.CreatedAt,
             updatedAt: item.UpdatedAt,
         });

@@ -3,18 +3,16 @@ import { DynamoDBDocumentClient } from '@aws-sdk/lib-dynamodb';
 import { S3Utils } from './utils/S3Utils.js';
 import { SQSUtils } from './utils/SQSUtils.js';
 import { DynamoDBJobRepository } from './repositories/DynamoDBJobRepository.js';
-import { DynamoDBCsvResultRepository } from './repositories/DynamoDBCsvResultRepository.js';
 import { DynamoDBIdempotencyRepository } from './repositories/DynamoDBIdempotencyRepository.js';
 import { MapJobUseCase } from './usecases/MapJobUseCase.js';
 import { ReduceJobUseCase } from './usecases/ReduceJobUseCase.js';
 import { GenerateUploadUrlUseCase } from './usecases/GenerateUploadUrlUseCase.js';
 import { GetJobsUseCase } from './usecases/GetJobsUseCase.js';
-import { GetJobResultsUseCase } from './usecases/GetJobResultsUseCase.js';
+import { GetJobResultUseCase } from './usecases/GetJobResultUseCase.js';
 import { FileProcessingStrategy } from './factories/FileProcessingStrategy.js';
 
 const docClient = DynamoDBDocumentClient.from(new DynamoDBClient());
 const jobRepository = new DynamoDBJobRepository(docClient, process.env.TABLE_NAME);
-const csvResultRepository = new DynamoDBCsvResultRepository(docClient, process.env.TABLE_NAME);
 const idempotencyRepository = new DynamoDBIdempotencyRepository(docClient, process.env.TABLE_NAME);
 const s3Utils = new S3Utils();
 const sqsUtils = new SQSUtils();
@@ -24,7 +22,7 @@ const mapJobUseCase = new MapJobUseCase(jobRepository, fileProcessingStrategy, s
 const reduceJobUseCase = new ReduceJobUseCase(jobRepository, fileProcessingStrategy, idempotencyRepository);
 const generateUploadUrlUseCase = new GenerateUploadUrlUseCase(s3Utils);
 const getJobsUseCase = new GetJobsUseCase(jobRepository);
-const getJobResultsUseCase = new GetJobResultsUseCase(csvResultRepository);
+const getJobResultsUseCase = new GetJobResultUseCase(jobRepository, fileProcessingStrategy);
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': 'http://localhost:4200',

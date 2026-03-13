@@ -20,6 +20,7 @@ describe('ReduceJobUseCase', () => {
 
     let mockJobRepository;
     let mockCsvResultRepository;
+    let mockFileProcessingStrategy;
     let mockIdempotencyRepository;
     let useCase;
 
@@ -33,7 +34,9 @@ describe('ReduceJobUseCase', () => {
             reduce: jest.fn().mockResolvedValue(),
         };
         mockFileProcessingStrategy = {
-            getFactory: jest.fn().mockReturnValue(mockCsvResultRepository),
+            getFactory: jest.fn().mockReturnValue({
+                getResultRepository: jest.fn().mockReturnValue(mockCsvResultRepository),
+            }),
         };
         mockIdempotencyRepository = {
             save: jest.fn(),
@@ -80,7 +83,8 @@ describe('ReduceJobUseCase', () => {
 
         await expect(useCase.execute(makeMessage())).rejects.toThrow('DynamoDB error');
 
-        expect(mockIdempotencyRepository.delete).toHaveBeenCalledWith('test-job-id#1');
+        expect(mockIdempotencyRepository.delete).toHaveBeenCalledWith(
+            expect.objectContaining({ key: 'test-job-id#1' })
+        );
     });
 });
-

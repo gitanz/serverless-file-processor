@@ -21,8 +21,9 @@ export class ReduceJobUseCase {
     async execute(message) {
         const { jobId, key, payloadType:contentType } = message;
 
-        const resultRepository = this.fileProcessingStrategy.getFactory(contentType);
-        const saved = await this.idempotencyRepository.save(new Idempotency({ key }));
+        const resultRepository = this.fileProcessingStrategy.getFactory(contentType).getResultRepository();
+        const idempotency = new Idempotency({ key });
+        const saved = await this.idempotencyRepository.save(idempotency);
         if (!saved) {
             console.log(`Duplicate message, skipping key=${key}`);
             return;
@@ -41,7 +42,7 @@ export class ReduceJobUseCase {
             }
 
         } catch (err) {
-            await this.idempotencyRepository.delete(key);
+            await this.idempotencyRepository.delete(idempotency);
             throw err;
         }
     }
